@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>For You ❤️</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Dancing+Script:wght@700&family=Quicksand:wght@300;400;600&display=swap" rel="stylesheet">
+    
+    <style>
+        /* --- GLOBAL STYLES --- */
+        body {
+            background: linear-gradient(135deg, #fff0f3 0%, #ffc1cc 100%);
+            overflow: hidden;
+            font-family: 'Quicksand', sans-serif;
+            margin: 0; padding: 0;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        .font-cursive { font-family: 'Dancing Script', cursive; }
+        
+        /* --- 1. BACKGROUND ANIMATIONS --- */
+        
+        /* Floating Hearts (Upwards) */
+        .bg-element { position: absolute; pointer-events: none; opacity: 0; z-index: 0; }
+        .float-heart { animation: floatUp linear infinite; color: rgba(255, 71, 87, 0.3); }
+        
+        @keyframes floatUp {
+            0% { transform: translateY(110vh) scale(0.5); opacity: 0; }
+            20% { opacity: 0.6; }
+            80% { opacity: 0.6; }
+            100% { transform: translateY(-10vh) scale(1.2) rotate(360deg); opacity: 0; }
+        }
+
+        /* Falling Petals */
+        .falling-petals { position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 1; }
+        .falling-petals i {
+            position: absolute;
+            background: #ffb7b2;
+            border-radius: 50% 0 50% 50%;
+            width: 20px;
+            height: 20px;
+            top: -10%;
+            animation: falling 7s linear infinite;
+            opacity: 0.6;
+        }
+        .falling-petals i:nth-child(1) { left: 10%; animation-duration: 6s; transform: rotate(45deg); }
+        .falling-petals i:nth-child(2) { left: 30%; animation-duration: 9s; width: 15px; height: 15px; }
+        .falling-petals i:nth-child(3) { left: 50%; animation-duration: 5s; background: #ff9e99; }
+        .falling-petals i:nth-child(4) { left: 70%; animation-duration: 8s; }
+        .falling-petals i:nth-child(5) { left: 90%; animation-duration: 7s; width: 25px; height: 25px; }
+
+        @keyframes falling {
+            0% { top: -10%; transform: rotate(0deg) translateX(0); }
+            100% { top: 110%; transform: rotate(360deg) translateX(50px); }
+        }
+
+        
+        /* --- 2. CORNER HEARTS ---*/
+        .corner-heart {
+            position: absolute;
+            width: 100px;
+            height: 100px;
+            z-index: 5;
+            opacity: 0.5;
+            pointer-events: none;
+        }
+        .corner-heart::before,
+        .corner-heart::after {
+            content: "";
+            position: absolute;
+            width: 50px;
+            height: 80px;
+            border: 5px solid #ff4757;
+            border-right: none;
+            border-radius: 50px 50px 0 0;
+            top: 0;
+            left: 45px;
+            transform: rotate(-45deg);
+            transform-origin: 0 100%;
+        }
+
+        .corner-heart::after {
+            left: -5px;
+            border-right: 5px solid #ff4757;
+            border-left: none;
+            transform: rotate(45deg);
+            transform-origin: 100% 100%;    
+        }
+
+        .tl { top: 20px; left: 20px; transform: rotate(-10deg); }
+        .tr { top: 20px; right: 20px; transform: rotate(10deg); }
+        .bl { bottom: -50px; left: -50px; transform: rotate(15deg) scale(1.2);}
+        .br { bottom: -50px; right: -50px; transform: rotate(-15deg) scale(1.2); } 
+
+
+        /* --- STORY TRANSITIONS --- */
+        .story-step {
+            transition: all 0.8s cubic-bezier(0.4, 0, 0.2, 1);
+            position: absolute; width: 90%; max-width: 600px; text-align: center;
+        }
+        .hidden-step { opacity: 0; transform: translateY(30px) scale(0.95); pointer-events: none; }
+        .active-step { opacity: 1; transform: translateY(0) scale(1); pointer-events: auto; }
+
+        /* --- BUTTONS --- */
+        .btn-main {
+            background: linear-gradient(45deg, #ff4757, #ff6b81);
+            box-shadow: 0 10px 20px rgba(255, 71, 87, 0.3);
+            transition: transform 0.2s;
+            cursor: pointer;
+        }
+        .btn-main:hover { transform: translateY(-3px); box-shadow: 0 15px 25px rgba(255, 71, 87, 0.5); }
+        .btn-ghost { background: #fff0f3; color: #d81b60; border: 2px solid #ffccd5; cursor: pointer; }
+
+        
+
+        /* --- THE ROSE STYLES --- */
+        #rose-view {
+            display: none; /* Initially hidden */
+        }
+
+        .rose-container {
+            width: 100%; max-width: 420px; height: 520px;
+            overflow: visible;
+            filter: drop-shadow(0 10px 10px rgba(0,0,0,0.1));
+            margin-bottom: -50px; /* Pull message up slightly */
+        }
+
+        .stem { stroke-dasharray: 1000; stroke-dashoffset: 1000; transition: stroke-dashoffset 2.5s ease-in-out; }
+        .leaf { transform: scale(0); transition: transform 1s cubic-bezier(0.34, 1.56, 0.64, 1); }
+        
+        .rose-head path {
+            opacity: 0; transform: scale(0);
+            transform-origin: 250px 250px; 
+            transition: all 1.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            shape-rendering: geometricPrecision;
+        }
+
+        /* Trigger Bloom */
+        .bloom .stem { stroke-dashoffset: 0; }
+        .bloom .leaf { transform: scale(1); }
+        .bloom .rose-head path { opacity: 1; transform: scale(1) rotate(var(--r, 0deg)); }
+        
+        /* Staggered Delays */
+        .bloom .leaf-1 { transition-delay: 1.2s; }
+        .bloom .leaf-2 { transition-delay: 1.5s; }
+        .bloom .p-back { transition-delay: 1.8s; }
+        .bloom .p-mid  { transition-delay: 2.1s; }
+        .bloom .p-inner{ transition-delay: 2.4s; }
+
+        /* --- MESSAGE BOX --- */
+        .message-card {
+            background: rgba(255, 255, 255, 0.9);
+            border: 2px solid rgba(255, 71, 87, 0.3);
+            border-radius: 20px;
+            padding: 25px;
+            width: 90%;
+            max-width: 500px;
+            box-shadow: 0 10px 30px rgba(255, 71, 87, 0.15);
+            opacity: 0; /* Starts invisible */
+            transform: translateY(20px);
+            transition: all 1s ease;
+            position: relative;
+            z-index: 50;
+        }
+        /* Class to show the message */
+        .message-card.show-message {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* --- BURST PARTICLES --- */
+        .burst-particle {
+            position: absolute;
+            pointer-events: none;
+            z-index: 100;
+        }
+
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen">
+
+    <div id="bg-layer" class="absolute inset-0 w-full h-full"></div>
+    
+    <div class="falling-petals">
+        <i></i><i></i><i></i><i></i><i></i>
+    </div>
+
+    <div class="corner-heart tl"></div>
+    <div class="corner-heart tr"></div>
+    <div class="corner-heart bl"></div>
+    <div class="corner-heart br"></div>
+
+    <main class="relative z-20 w-full flex flex-col items-center justify-center">
+
+        <div id="step-1" class="story-step active-step">
+            <h1 class="text-5xl font-cursive text-rose-600 mb-6">Hey... 🥺</h1>
+            <p class="text-xl text-rose-900 mb-8 font-medium">I have a little confession to make.</p>
+            <button onclick="nextStep(1,2)" class="btn-main text-white px-8 py-3 rounded-full text-lg font-bold">Continue</button>
+        </div>
+
+        <div id="step-2" class="story-step hidden-step">
+            <h1 class="text-4xl font-cursive text-rose-600 mb-6">I often wonder, how did I get so lucky to find you? ✨</h1>
+            <button onclick="nextStep(2,3)" class="btn-main text-white px-8 py-3 rounded-full text-lg font-bold">Hmm..</button>
+        </div>
+
+        <div id="step-3" class="story-step hidden-step">
+            <h1 class="text-4xl font-cursive text-rose-600 mb-6">You make my world quiet and loud at the same time..✨</h1>
+            <button onclick="nextStep(3,4)" class="btn-main text-white px-8 py-3 rounded-full text-lg font-bold"> Wait , How?</button>
+        </div>
+
+        <div id="step-4" class="story-step hidden-step">
+            <h1 class="text-4xl font-cursive text-rose-600 mb-6">Quiet because I feel safe with you..😌</h1>
+            <p class="text-xl text-rose-800 mb-8">🩷 Loud because my heart beats faster.</p>
+            <button onclick="nextStep(4,5)" class="btn-main text-white px-8 py-3 rounded-full text-lg font-bold">Aww...</button>
+        </div>
+
+        <div id="step-5" class="story-step hidden-step">
+            <h1 class="text-4xl font-cursive text-rose-600 mb-6">Do you know why flowers are jealous of you? 🤔</h1>
+            <button onclick="nextStep(5,6)" class="btn-main text-white px-8 py-3 rounded-full text-lg font-bold">Why?</button>
+        </div>
+
+        <div id="step-6" class="story-step hidden-step">
+            <h1 class="text-5xl font-cursive text-rose-600 mb-6">Because they fade...🥀</h1>
+            <p class="text-xl text-rose-800 mb-8">But you are timeless.🌹</p>
+            <button onclick="nextStep(6,7)" class="btn-main text-white px-8 py-3 rounded-full text-lg font-bold">Next 💗</button>
+        </div>
+
+       <div id="step-7" class="story-step hidden-step">
+            <h1 class="text-5xl font-cursive text-rose-600 mb-6class=">I wanted to give you something as beautiful as your soul.</h1>
+            <p class="text-xl text-rose-800 mb-8">Something that represents the love I carry for you.</p>
+            <button onclick="nextStep(7,8)" class="btn-main text-white px-8 py-3 rounded-full text-lg font-bold">What is it? ❤️</button>
+        </div>
+
+        <div id="step-8" class="story-step hidden-step">
+            <h1 id="prop-text" class="text-5xl font-cursive text-rose-600 mb-10 leading-relaxed">Will you accept this : 🌹</h1>
+            <div class="flex flex-wrap gap-4 justify-center">
+                <button onclick="revealRose()" class="btn-main text-white px-10 py-4 rounded-full text-xl font-bold">Yes, I accept! 💖</button>
+                <button id="no-btn" onclick="handleNo()" class="btn-ghost px-8 py-4 rounded-full text-lg font-bold">No.. 🤭</button>
+            </div>
+        </div>
+
+        <div id="rose-view" class="story-step hidden-step w-full flex flex-col items-center">
+            
+            <svg class="rose-container" viewBox="0 0 500 600" id="rose-svg">
+                <defs>
+                    <linearGradient id="grad-leaf" x1="0%" y1="0%" x2="100%" y2="100%">
+                        <stop offset="0%" stop-color="#52b788"/>
+                        <stop offset="100%" stop-color="#2d6a4f"/>
+                    </linearGradient>
+                </defs>
+
+                <path class="stem" d="M250,580 Q230,450 250,250" fill="none" stroke="#2d6a4f" stroke-width="12" stroke-linecap="round" />
+
+                <path class="leaf leaf-1" style="transform-origin: 240px 450px" d="M240,450 Q170,430 150,370 Q210,390 240,450" fill="url(#grad-leaf)"/>
+                <path class="leaf leaf-2" style="transform-origin: 250px 360px" d="M250,360 Q330,340 350,280 Q290,300 250,360" fill="url(#grad-leaf)"/>
+
+                <g class="rose-head">
+                    <path class="p-back" style="--r: -15deg" d="M250,250 C200,250 180,150 250,120 C320,150 300,250 250,250" fill="#a4133c" />
+                    <path class="p-back" style="--r: 15deg" d="M250,250 C200,250 180,150 250,120 C320,150 300,250 250,250" fill="#a4133c" />
+                    <path class="p-mid" d="M250,250 C200,250 180,150 250,120 C320,150 300,250 250,250" fill="#ffb3c1" />
+                    <path class="p-inner" d="M250,250 C180,240 160,180 250,160 C340,180 320,240 250,250" fill="#ff4d6d" />
+                </g>
+            </svg>
+
+            <div id="final-message" class="message-card">
+                <h2 class="text-3xl font-cursive text-rose-900 mb-2">Happy Rose Day My LOVEE SURIIII  ❤️</h2>
+                <p class="text-xl text-rose-600 font-bold mt-2">
+                    "Like this rose, my love for you grows more beautiful and vibrant with each passing day.💕" 
+                </p>
+                <p class="text-sm text-rose-800 mt-2 font-medium">A rose for my rose🌹.</p>
+            </div>
+
+        </div>
+
+    </main>
+
+    <script>
+        // --- BACKGROUND ---
+        const bg = document.getElementById('bg-layer');
+        const hearts = ['❤️', '💖', '💗', '💕', '✨'];
+        for(let i=0; i<15; i++) {
+            let div = document.createElement('div');
+            div.className = 'bg-element float-heart';
+            div.innerHTML = hearts[Math.floor(Math.random()*hearts.length)];
+            div.style.left = Math.random()*100 + '%';
+            div.style.fontSize = (10 + Math.random()*20) + 'px';
+            div.style.animationDuration = (8 + Math.random()*5) + 's';
+            div.style.animationDelay = Math.random()*5 + 's';
+            bg.appendChild(div);
+        }
+
+        // --- NAVIGATION ---
+        function nextStep(current, next) {
+            let c = document.getElementById('step-'+current);
+            let n = document.getElementById('step-'+next);
+            c.classList.remove('active-step');
+            c.classList.add('hidden-step');
+            setTimeout(() => {
+                c.style.display = 'none';
+                n.style.display = 'block';
+                setTimeout(() => { n.classList.remove('hidden-step'); n.classList.add('active-step'); }, 50);
+            }, 500);
+        }
+
+        // --- HANDLE NO ---
+        function handleNo() {
+            let btn = document.getElementById('no-btn');
+            let txt = document.getElementById('prop-text');
+            btn.style.display = 'none';
+            txt.innerHTML = "Don't be shy... <br>It's specially for you! 🥺";
+        }
+
+        // --- REVEAL ROSE ---
+        function revealRose() {
+            let step8 = document.getElementById('step-8');
+            let roseView = document.getElementById('rose-view');
+            let messageCard = document.getElementById('final-message');
+
+            step8.classList.remove('active-step');
+            step8.classList.add('hidden-step');
+            
+            setTimeout(() => {
+                step8.style.display = 'none';
+                roseView.style.display = 'flex';
+                
+                setTimeout(() => {
+                    roseView.classList.remove('hidden-step');
+                    roseView.classList.add('active-step');
+                    
+                    // 1. Start the flower animation
+                    document.getElementById('rose-svg').classList.add('bloom');
+                    
+                    // 2. Wait 3 seconds for flower to bloom, then show message
+                    setTimeout(() => {
+                        messageCard.classList.add('show-message');
+                        // 3. Fire particles slightly after message appears
+                        setTimeout(fireBurst, 500);
+                    }, 3000); 
+
+                }, 50);
+            }, 500);
+        }
+
+        // --- BURST PARTICLES ---
+        function fireBurst() {
+            const colors = ['#ff1744', '#ff4081', '#ffffff'];
+            const symbols = ['❤️', '💖', '🌹', '✨'];
+            for(let i=0; i<60; i++) {
+                let p = document.createElement('div');
+                p.className = 'burst-particle';
+                p.style.left = '50%';
+                p.style.top = '50%';
+                let size = Math.random() * 8 + 4;
+                if(Math.random() > 0.6) {
+                    p.innerHTML = symbols[Math.floor(Math.random() * symbols.length)];
+                    p.style.fontSize = (15 + Math.random() * 15) + 'px';
+                    p.style.backgroundColor = 'transparent';
+                } else {
+                    p.style.width = size + 'px';
+                    p.style.height = size + 'px';
+                    p.style.backgroundColor = colors[Math.floor(Math.random()*colors.length)];
+                    p.style.borderRadius = '50%';
+                }
+                document.body.appendChild(p);
+                let angle = Math.random() * Math.PI * 2;
+                let velocity = Math.random() * 300 + 100;
+                let tx = Math.cos(angle) * velocity;
+                let ty = Math.sin(angle) * velocity;
+                p.animate([
+                    { transform: 'translate(-50%, -50%) scale(0)', opacity: 1 },
+                    { transform: `translate(calc(-50% + ${tx}px), calc(-50% + ${ty}px)) scale(1.5)`, opacity: 0 }
+                ], {
+                    duration: 2000 + Math.random() * 1000,
+                    easing: 'cubic-bezier(0, .9, .57, 1)',
+                    fill: 'forwards'
+                });
+                setTimeout(() => p.remove(), 3000);
+            }
+        }
+    </script>
+</body>
+</html>
